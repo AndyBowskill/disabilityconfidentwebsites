@@ -1,16 +1,23 @@
-import requests, bs4, csv
+import requests
+import bs4
+import csv
+
 
 class FindWebsite:
+    def __init__(self):
+        self.csv_read_open()
+        self.csv_write_open()
+
     def csv_read_open(self):
         self.read_csv_file = open('data/disabilityconfident.csv', 'r')
         self.csv_reader = csv.reader(self.read_csv_file, delimiter=',')
 
-    def csv_read_close(self):
-        self.read_csv_file.close()
-
     def csv_write_open(self):
         self.write_csv_file = open('data/disabilityconfidentwebsite.csv', 'w', newline='')
         self.csv_writer = csv.writer(self.write_csv_file)
+
+    def csv_read_close(self):
+        self.read_csv_file.close()
 
     def csv_write_close(self):
         self.write_csv_file.close()
@@ -101,14 +108,15 @@ class FindWebsite:
             if line_count + 1000 >= 3000:
                 break
 
+        self.csv_read_close()
+        self.csv_write_close()
 
-if __name__ == "__main__":
 
+
+def main():
     fw = FindWebsite()
-    fw.csv_read_open()
-    fw.csv_write_open()
-
     fw.process()
 
-    fw.csv_read_close()
-    fw.csv_write_close()
+
+if __name__ == "__main__":
+    main()
