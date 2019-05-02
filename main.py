@@ -32,14 +32,12 @@ class FindDisabilityConfidentWebsite:
 
         soup = bs4.BeautifulSoup(html.text, 'html.parser')
         link_elements = soup.select('.r a')
-
-        try:
+        if len(link_elements) > 0:
             website = self.get_website(link_elements)
-            self.csv_writer.writerow([row[0], row[1], row[2], row[3], row[4], website])
+        else:
+            website = ''
 
-        except:
-            print('Error for the ' + row[0] + ' website.')
-            return False
+        self.csv_writer.writerow([row[0], row[1], row[2], row[3], row[4], website])
 
         return True
 
@@ -98,12 +96,15 @@ class FindDisabilityConfidentWebsite:
         else:
             return True
 
-    def process(self, line_maximum):
+    def process(self, line_start, line_maximum):
         line_count = 0
 
         for row in self.csv_reader:
 
             line_count += 1
+
+            if line_count < line_start:
+                continue
 
             if line_count > line_maximum:
                 break
@@ -126,7 +127,7 @@ class FindDisabilityConfidentWebsite:
 
 def main():
     find_website = FindDisabilityConfidentWebsite()
-    find_website.process(20)
+    find_website.process(1001,1500)
 
 
 if __name__ == '__main__':
