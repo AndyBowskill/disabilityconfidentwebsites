@@ -1,6 +1,5 @@
-import requests
-import bs4
 import csv
+from selenium import webdriver
 
 
 class FindDisabilityConfidentWebsite:
@@ -26,67 +25,19 @@ class FindDisabilityConfidentWebsite:
         self.csv_writer.writerow(['Business name', 'Town or city', 'Postcode', 'Sector', 'DC level', 'Website'])
 
     def csv_write_company(self, row):
-        html = requests.get('https://www.google.co.uk/search?q=' + row[0])
-        if html.status_code != 200:
-            return False
+        driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver')
+        driver.get('https://www.google.co.uk/search?q=' + row[0])
 
-        soup = bs4.BeautifulSoup(html.text, 'html.parser')
-        link_elements = soup.select('.r a')
-        if len(link_elements) > 0:
-            website = self.get_website(link_elements)
-        else:
-            website = ''
-
-        self.csv_writer.writerow([row[0], row[1], row[2], row[3], row[4], website])
-
-        return True
-
-    def get_website(self, link_elements):
-        website_found = False
+        class_name = driver.find_elements_by_class_name('iUh30')
 
         for link in [0, 1, 2]:
-
-            href = link_elements[link].get('href')
-            href = href.split('/')
-
-            if self.is_website_valid(href):
-                website_found = True
-                break
-            else:
+            href_text = class_name[link].text
+            if href_text is None:
                 continue
+            else:
+                break
 
-        if website_found:
-            website = href[3]
-        else:
-            website = ''
-
-        return website
-
-    def is_website_valid(self, href):
-
-        if len(href) < 4:
-            return False
-
-        bad_websites = ['beta.companieshouse.gov.uk',
-                        'www.youtube.com',
-                        'business.facebook.com',
-                        'www.facebook.com',
-                        'en-gb.facebook.com',
-                        'www.instagram.com',
-                        'www.tripadvisor.co.uk',
-                        'www.tripadvisor.com',
-                        'www.ebay.co.uk',
-                        'www.yell.com',
-                        'en.wiktionary.org',
-                        'en.wikipedia.org',
-                        'uk.linkedin.com',
-                        'www.linkedin.com',
-                        'companycheck.co.uk']
-        website = href[3]
-
-        for bad_website in bad_websites:
-            if website == bad_website:
-                return False
+        self.csv_writer.writerow([row[0], row[1], row[2], row[3], row[4], href_text])
 
         return True
 
@@ -127,7 +78,7 @@ class FindDisabilityConfidentWebsite:
 
 def main():
     find_website = FindDisabilityConfidentWebsite()
-    find_website.process(1001,1500)
+    find_website.process(0,10)
 
 
 if __name__ == '__main__':
