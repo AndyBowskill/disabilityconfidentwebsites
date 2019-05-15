@@ -1,4 +1,5 @@
 import csv
+import urllib.parse
 from selenium import webdriver
 
 
@@ -24,22 +25,51 @@ class FindDisabilityConfidentWebsite:
     def csv_write_header(self):
         self.csv_writer.writerow(['Business name', 'Town or city', 'Postcode', 'Sector', 'DC level', 'Website'])
 
+    def process_csv_company_website(self, href_text):
+
+        if href_text.find(' ') != -1:
+            return False
+
+        if href_text.find('...') != -1:
+            return False
+
+        bad_websites = ['www.indeed.co.uk',
+                        'www.imdb.com',
+                        'www.youtube.com',
+                        'business.facebook.com',
+                        'www.facebook.com',
+                        'en-gb.facebook.com',
+                        'www.instagram.com',
+                        'www.tripadvisor.co.uk',
+                        'www.tripadvisor.com',
+                        'www.ebay.co.uk',
+                        'www.yell.com',
+                        'en.wiktionary.org',
+                        'en.wikipedia.org',
+                        'uk.linkedin.com',
+                        'www.linkedin.com',
+                        'companycheck.co.uk']
+
+        if any(bad_website in href_text for bad_website in bad_websites):
+            return False
+
+        return True
+
     def csv_write_company(self, row):
         driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver')
-        driver.get('https://www.google.co.uk/search?q=' + row[0])
 
+        driver.get('https://www.google.co.uk/search?q=' +  urllib.parse.quote_plus(row[0]))
         class_name = driver.find_elements_by_class_name('iUh30')
 
         for link in [0, 1, 2]:
             href_text = class_name[link].text
-            if href_text is None:
-                continue
-            else:
+            if self.process_csv_company_website(href_text):
                 break
+            else:
+                href_text = ''
+                continue
 
         self.csv_writer.writerow([row[0], row[1], row[2], row[3], row[4], href_text])
-
-        return True
 
     def is_row_valid(self, row):
         if len(row) >= 6 and row[5] != '':
@@ -69,8 +99,8 @@ class FindDisabilityConfidentWebsite:
                 self.csv_write_header()
                 continue
             else:
-                if not self.csv_write_company(row):
-                    continue
+                self.csv_write_company(row)
+                continue
 
         self.csv_read_close()
         self.csv_write_close()
@@ -78,7 +108,7 @@ class FindDisabilityConfidentWebsite:
 
 def main():
     find_website = FindDisabilityConfidentWebsite()
-    find_website.process(0,10)
+    find_website.process(2501, 3000)
 
 
 if __name__ == '__main__':
